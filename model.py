@@ -1,12 +1,13 @@
 import numpy as np
 
 class LogisticRegression:
-	def __init__(self, n_features, lr=0.01, epochs=1000):
+	def __init__(self, n_features, lr=0.01, epochs=1000, weights=None):
 		self.lr = lr
 		self.epochs = epochs
-		self.weights = np.random.rand(n_features + 1, 1)
-		self.xmean = 0
-		self.xstd = 1
+		if weights is not None:
+			self.weights = weights
+		else:
+			self.weights = np.random.rand(n_features + 1, 1)
 		self.n_features = n_features
 
 	def normalize(self, X):
@@ -16,8 +17,6 @@ class LogisticRegression:
 		return X
 
 	def forward(self, X):
-		# X : shape : (*, n_features)
-		# W : shape : (n_features, out_features)
 		return 1 / (1 + np.exp(-X @ self.weights))
 	
 	def loss(self, y, y_pred):
@@ -28,7 +27,6 @@ class LogisticRegression:
 		self.weights -= (self.lr * grad).reshape(-1, 1)
 
 	def predict(self, X):
-		# X = (X - self.xmean) / self.xstd
 		X = np.insert(X, 0, 1, axis=1)
 		return self.forward(X)
 
@@ -40,13 +38,10 @@ class LogisticRegression:
 
 	def fit(self, X, y):
 		X = self.normalize(X)
-		# print(X[:10])
 		X = np.insert(X, 0, 1, axis=1)
 		for epoch in range(self.epochs):
 			y_pred = self.forward(X)
 			y_pred = y_pred.squeeze()
 			self.backward(y_pred, y, X)
-			# if epoch % 100 == 0:
-				# print(f"Epoch : {epoch}, Loss: {self.loss(y, y_pred)}")
 		y_pred = self.forward(X)
 		y_pred = y_pred.squeeze()
