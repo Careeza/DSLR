@@ -1,8 +1,8 @@
 import pandas as pd
 import argparse
-from tools import ft_count, ft_mean, ft_std, ft_min, ft_percentile, ft_max
+from tools import ft_count, ft_mean, ft_std, ft_min, ft_percentile, ft_max, get_KL_matrixes
 
-def describe(filename):
+def describe(filename, courses):
 	"""
 	Reads a CSV file and calculates descriptive statistics for specified courses.
 
@@ -14,14 +14,14 @@ def describe(filename):
 	"""
 	df = pd.read_csv(filename)
 	
-	courses = ["Arithmancy", "Astronomy", "Herbology", "Defense Against the Dark Arts", "Divination", "Muggle Studies", "Ancient Runes", "History of Magic", "Transfiguration", "Potions", "Care of Magical Creatures", "Charms", "Flying"]
-	
 	for course in courses:
 		if course not in df.columns:
 			raise ValueError(f"Course '{course}' is missing from the dataset")
 	
 	stats = []
 	
+	kl_matrixes = get_KL_matrixes(df)
+
 	for course in courses:
 		values = df[course].to_list()
 		col_stats = {
@@ -33,7 +33,8 @@ def describe(filename):
 			'25%': ft_percentile(values, 0.25),
 			'50%': ft_percentile(values, 0.50),
 			'75%': ft_percentile(values, 0.75),
-			'Max': ft_max(values)
+			'Max': ft_max(values),
+			'Homogeneity': kl_matrixes[course].mean().mean()
 		}
 		stats.append(col_stats)
 	
@@ -46,9 +47,10 @@ def describe(filename):
 def main():
 	parser = argparse.ArgumentParser(description='Describe the dataset.')
 	parser.add_argument('--dataset', type=str, default='datasets/dataset_train.csv', help='Path to the dataset file')
+	parser.add_argument('--courses', type=str, nargs='+', default=['Arithmancy', 'Astronomy', 'Herbology', 'Defense Against the Dark Arts', 'Divination', 'Muggle Studies', 'Ancient Runes', 'History of Magic', 'Transfiguration', 'Potions', 'Care of Magical Creatures', 'Charms', 'Flying'], help='List of courses to plot')
 	args = parser.parse_args()
 	
-	print(describe(args.dataset))
+	print(describe(args.dataset, args.courses))
 
 if __name__ == '__main__':
 	main()
